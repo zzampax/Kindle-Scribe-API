@@ -1,0 +1,4 @@
+.venv/
+kindle_pdfs/*
+credentials.json
+token.json

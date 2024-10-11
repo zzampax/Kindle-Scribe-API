@@ -1,6 +1,7 @@
 import os
 import time
 import base64
+import requests
 import re
 
 from google.auth.transport.requests import Request
@@ -47,7 +48,6 @@ def auth():
 
 def fetch_pdf(pdf_link, filename):
     # Download the PDF
-    import requests
     response = requests.get(pdf_link)
     with open(f"kindle_pdfs/{filename}.pdf", "wb") as pdf:
         pdf.write(response.content)

@@ -6,8 +6,13 @@ The whole script is based on Google's `Gmail API`, enabling it to parse email me
 > The `URL` is then embedded in a link on the email sent to the user.
 
 Once the `URL` has been found, the script fetches it via:
-```bash
-curl -s -o kindle_pdfs/<filename>.pdf '<pdf_link>'
+```python3
+def fetch_pdf(pdf_link, filename):
+    # Download the PDF
+    import requests
+    response = requests.get(pdf_link)
+    with open(f"kindle_pdfs/{filename}.pdf", "wb") as pdf:
+        pdf.write(response.content)
 ```
 ## Essential files
 - `credentials.json` downloadable after generating an **ID client OAuth 2.0** via the Google API Dashboard.

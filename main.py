@@ -45,6 +45,12 @@ def auth():
                 token.write(creds.to_json())
     return creds
 
+def fetch_pdf(pdf_link, filename):
+    # Download the PDF
+    import requests
+    response = requests.get(pdf_link)
+    with open(f"kindle_pdfs/{filename}.pdf", "wb") as pdf:
+        pdf.write(response.content)
 
 def main(creds):
     global last_message_id
@@ -52,11 +58,11 @@ def main(creds):
         # Call the Gmail API
         service = build("gmail", "v1", credentials=creds)
 
-        # Get the last email that contains the word "Kindle" (case-sensitive) in the subject
+        # Get the last email from <do-not-reply@amazon.com>
         results = (
             service.users()
             .messages()
-            .list(userId="me", q="subject:Kindle", maxResults=1)
+            .list(userId="me", q="from:do-not-reply@amazon.com", maxResults=1)
             .execute()
         )
         # Store the whole message
@@ -76,11 +82,14 @@ def main(creds):
         b64content = "".join(part["body"]["data"] for part in message["payload"]["parts"] if part["mimeType"] == "text/plain")
         content = base64.urlsafe_b64decode(b64content).decode("utf-8")
         # Get the link to the PDF
-        pdf_link = [link for link in re.findall(r'\((https?://[^\s)]+)\)', content) if "kindle" in link][0]
+        pdf_link = [link for link in re.findall(r'\((https?://[^\s)]+)\)', content) if "kindle" in link]
+        if not pdf_link:
+            return
+        pdf_link = pdf_link[0]
         # Set the filename to the current time and the message ID
         filename = f"{message["snippet"].split("&quot;")[1].replace(" ", "-")}_{time.time()}_{results['messages'][0]['id']}"
         # Download the PDF
-        os.system(f"curl -s -o kindle_pdfs/{filename}.pdf '{pdf_link}'")
+        fetch_pdf(pdf_link, filename)
         print(f"Downloaded {filename.split('_')[0]}.pdf")
 
     except HttpError as error:
